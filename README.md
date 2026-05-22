@@ -7,6 +7,19 @@
 
 ---
 
+## Platform Support
+
+| Platform | CPU | GPU |
+|---|---|---|
+| **Windows** | ✅ | ✅ CUDA (NVIDIA) |
+| **Mac (Apple Silicon)** | ✅ | ✅ MPS (M1/M2/M3) |
+| **Mac (Intel)** | ✅ | ✅ CUDA (if available) |
+| **Linux** | ✅ | ✅ CUDA (NVIDIA) |
+
+The code automatically detects the best available device (CUDA → MPS → CPU).
+
+---
+
 ## What This Project Does
 
 Given a patient's **ADC (Apparent Diffusion Coefficient)** prostate MRI scan, this model automatically synthesizes the corresponding **T2-weighted MRI** scan — without needing a fully paired dataset.
@@ -22,7 +35,7 @@ It uses a **Semi-Supervised Sequential GAN** that combines:
 ```
 Multimodal-Medical-Image-Synthesis/
 ├── pytorch_port/
-│   ├── models.py               ← 6 network architectures (Encoder, GeneratorADC, GeneratorT2, Discriminators, SharedLayers)
+│   ├── models.py               ← 6 network architectures
 │   ├── dataset.py              ← PyTorch Dataset for single and paired modalities
 │   ├── utils.py                ← WGAN-GP gradient penalty, image saving, device helpers
 │   ├── preprocess_dicom.py     ← Convert raw DICOM → 64x64 PNG
@@ -32,7 +45,6 @@ Multimodal-Medical-Image-Synthesis/
 │   ├── requirements.txt        ← Python dependencies
 │   ├── results_semi_real/      ← Training checkpoints + TensorBoard logs
 │   ├── generated_semi_real/    ← Images generated during training
-│   ├── test_output/            ← Inference output images
 │   └── eval_output/            ← Evaluation metrics CSV + TensorBoard
 ├── data/
 │   ├── adc/                    ← 500 ADC PNG images (64x64)
@@ -40,6 +52,7 @@ Multimodal-Medical-Image-Synthesis/
 │   ├── paired_names.txt        ← 200 paired filenames (supervised signal)
 │   ├── adc_names.txt           ← 500 ADC filenames (unsupervised signal)
 │   └── t2_names.txt            ← 500 T2 filenames (unsupervised signal)
+├── assets/                     ← Architecture diagrams
 ├── semi/                       ← Original TensorFlow 1.x semi-supervised code
 ├── supervise/                  ← Original TensorFlow 1.x supervised code
 ├── unsupervise/                ← Original TensorFlow 1.x unsupervised code
@@ -52,7 +65,7 @@ Multimodal-Medical-Image-Synthesis/
 
 ## Requirements
 
-```bash
+```
 Python >= 3.8
 torch >= 2.0
 torchvision
@@ -65,51 +78,6 @@ scipy
 pydicom
 ```
 
-Install all at once:
-```bash
-cd pytorch_port
-pip install -r requirements.txt
-pip install pydicom scikit-image scipy
-```
-
----
-
-## Dataset
-
-### Download PROSTATEx
-
-1. Go to: **https://www.cancerimagingarchive.net/collection/prostatex/**
-2. Click **"Download"**
-3. You will get a `.tcia` manifest file: `PROSTATEx-v1-doiJNLP.tcia`
-
-### Convert .tcia to DICOM using NBIA Data Retriever
-
-The `.tcia` file is a manifest — not the actual images. You need the **NBIA Data Retriever** app to download the actual DICOM files.
-
-1. Download NBIA Data Retriever from:
-   **https://wiki.cancerimagingarchive.net/display/NBIA/Downloading+TCIA+Images**
-
-2. Install and open the app
-
-3. Open your `.tcia` file inside the app
-   - File → Open → select `PROSTATEx-v1-doiJNLP.tcia`
-
-4. Click **"Download"**
-   - All DICOM files will be saved to your chosen directory
-   - This creates the folder: `PROSTATEx-v1-doiJNLP/prostatex/`
-
-5. The folder structure will look like:
-   ```
-   PROSTATEx-v1-doiJNLP/
-   └── prostatex/
-       ├── ProstateX-0000/
-       │   └── <study>/
-       │       └── <series>/
-       │           └── *.dcm
-       ├── ProstateX-0001/
-       └── ...
-   ```
-
 ---
 
 ## Step-by-Step Execution
@@ -121,33 +89,73 @@ git clone https://github.com/avijit004/Multimodal-Medical-Image-Synthesis.git
 cd Multimodal-Medical-Image-Synthesis
 ```
 
-### Step 2 — Install Dependencies
+> **Important:** The repo uses Git LFS for images and model files.
+> Run this after cloning to download them:
+> ```bash
+> git lfs install
+> git lfs pull
+> ```
+
+---
+
+### Step 2 — Install PyTorch
+
+PyTorch must be installed based on your platform and GPU.
+Go to **https://pytorch.org/get-started/locally/** and select your config.
+
+**Mac (Apple Silicon or Intel):**
+```bash
+pip install torch torchvision
+```
+
+**Windows / Linux with NVIDIA GPU (CUDA 12.1):**
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
+
+**Windows / Linux CPU only:**
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+---
+
+### Step 3 — Install Remaining Dependencies
 
 ```bash
 cd pytorch_port
-pip install -r requirements.txt
-pip install pydicom scikit-image scipy
+pip install numpy opencv-python tensorboard Pillow scikit-image scipy pydicom
 ```
 
-### Step 3 — Preprocess DICOM to PNG
+---
 
-> Skip this step if you already have the `data/` folder (included in the repo).
+### Step 4 — Preprocess DICOM to PNG (Optional)
 
+> **Skip this step** — the `data/` folder with 500 ADC + 500 T2 images is already included in the repo.
+> Only do this if you want to regenerate data from the raw PROSTATEx DICOM files.
+
+#### Download PROSTATEx dataset
+1. Go to: **https://www.cancerimagingarchive.net/collection/prostatex/**
+2. Click **"Download"** → get the `.tcia` manifest file
+
+#### Convert .tcia to DICOM using NBIA Data Retriever
+1. Download from: **https://wiki.cancerimagingarchive.net/display/NBIA/Downloading+TCIA+Images**
+2. Open the app → File → Open → select `.tcia` file → Download
+3. DICOM files will be saved to `PROSTATEx-v1-doiJNLP/prostatex/`
+
+#### Run preprocessing
 ```bash
+cd pytorch_port
 python preprocess_dicom.py
 ```
 
-This will:
-- Walk through all patients in `PROSTATEx-v1-doiJNLP/prostatex/`
-- Identify ADC and T2-axial series by DICOM `SeriesDescription`
-- Extract the middle slice from each series
-- Center-crop and normalize to 64×64 PNG
-- Save to `../data/adc/` and `../data/t2/`
-- Generate `paired_names.txt`, `adc_names.txt`, `t2_names.txt`
+---
 
-### Step 4 — Train the Model
+### Step 5 — Train the Model
 
+**Mac / Linux:**
 ```bash
+cd pytorch_port
 python train_semi.py \
     --adc_dir ../data/adc \
     --t2_dir ../data/t2 \
@@ -158,9 +166,24 @@ python train_semi.py \
     --save_image_path ./generated_semi_real \
     --iters 10000 \
     --batch_size 32 \
-    --z_dim 128 \
-    --lr 1e-4 \
     --n_critic 3 \
+    --save_interval 500
+```
+
+**Windows (Command Prompt):**
+```cmd
+cd pytorch_port
+python train_semi.py ^
+    --adc_dir ../data/adc ^
+    --t2_dir ../data/t2 ^
+    --paired_list ../data/paired_names.txt ^
+    --adc_list ../data/adc_names.txt ^
+    --t2_list ../data/t2_names.txt ^
+    --results_path ./results_semi_real ^
+    --save_image_path ./generated_semi_real ^
+    --iters 10000 ^
+    --batch_size 32 ^
+    --n_critic 3 ^
     --save_interval 500
 ```
 
@@ -179,7 +202,7 @@ python train_semi.py \
 | `--lr` | 1e-4 | Learning rate |
 | `--n_critic` | 3 | Discriminator updates per generator update |
 | `--save_interval` | 500 | Save checkpoint every N iterations |
-| `--use_cpu` | False | Force CPU training |
+| `--use_cpu` | False | Force CPU (use if no GPU available) |
 
 **During training you will see:**
 ```
@@ -190,7 +213,9 @@ iter:  100 | D1=-16.27 D2=-7.69
 [Saved checkpoint + 50 image pairs at iter 500]
 ```
 
-### Step 5 — Monitor Training in TensorBoard
+---
+
+### Step 6 — Monitor Training in TensorBoard
 
 ```bash
 tensorboard --logdir ./results_semi_real
@@ -201,8 +226,11 @@ Open browser: **http://localhost:6006**
 - **SCALARS tab** → `Loss/D1` and `Loss/D2` loss curves
 - **IMAGES tab** → `Gen/ADC` and `Gen/T2` — drag slider to watch image quality improve over iterations
 
-### Step 6 — Run Inference (Test)
+---
 
+### Step 7 — Run Inference (Test)
+
+**Mac / Linux:**
 ```bash
 python test_semi.py \
     --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt \
@@ -213,12 +241,23 @@ python test_semi.py \
     --output_dir ./test_output
 ```
 
+**Windows:**
+```cmd
+python test_semi.py ^
+    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt ^
+    --mode both ^
+    --adc_dir ../data/adc ^
+    --adc_list ../data/adc_names.txt ^
+    --n_samples 50 ^
+    --output_dir ./test_output
+```
+
 **Inference modes:**
 
 | Mode | Description |
 |---|---|
 | `random_pairs` | Generate synthetic ADC+T2 pairs from random noise |
-| `real_to_fake` | Translate real ADC images to synthesized T2 images |
+| `real_to_fake` | Translate real ADC images to synthesized T2 |
 | `both` | Run both modes |
 
 **Output structure:**
@@ -233,8 +272,11 @@ test_output/
     └── synthesized_t2/     → THE MAIN RESULT — synthesized T2
 ```
 
-### Step 7 — Run Evaluation Metrics
+---
 
+### Step 8 — Run Evaluation Metrics
+
+**Mac / Linux:**
 ```bash
 python evaluate.py \
     --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt \
@@ -245,6 +287,20 @@ python evaluate.py \
     --t2_list ../data/t2_names.txt \
     --output_dir ./eval_output \
     --vis_images 16 \
+    --fid_samples 200
+```
+
+**Windows:**
+```cmd
+python evaluate.py ^
+    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt ^
+    --adc_dir ../data/adc ^
+    --t2_dir ../data/t2 ^
+    --paired_list ../data/paired_names.txt ^
+    --adc_list ../data/adc_names.txt ^
+    --t2_list ../data/t2_names.txt ^
+    --output_dir ./eval_output ^
+    --vis_images 16 ^
     --fid_samples 200
 ```
 
@@ -260,7 +316,9 @@ python evaluate.py \
 - `per_image_metrics.csv` — per-image breakdown
 - `tensorboard/` — TensorBoard event files
 
-### Step 8 — View Evaluation in TensorBoard
+---
+
+### Step 9 — View Evaluation in TensorBoard
 
 ```bash
 tensorboard --logdir ./eval_output/tensorboard
@@ -276,7 +334,7 @@ Open browser: **http://localhost:6006**
 
 ## Results
 
-Trained on PROSTATEx dataset — 9,500 iterations, batch size 32, Apple MPS device.
+Trained on PROSTATEx dataset — 9,500 iterations, batch size 32.
 
 | Metric | ADC Reconstruction | T2 Synthesis |
 |---|---|---|
@@ -286,7 +344,7 @@ Trained on PROSTATEx dataset — 9,500 iterations, batch size 32, Apple MPS devi
 | SSIM | 0.1329 ± 0.033 | 0.0297 ± 0.054 |
 | FID | 310.28 | 351.01 |
 
-> **Note:** Low SSIM on T2 synthesis is expected. ADC and T2 are fundamentally different image contrasts — they do not share pixel values even for the same anatomy. Visual quality and FID are more meaningful metrics for cross-modal synthesis. The original paper trains for 40,000 iterations; results improve significantly with more training.
+> **Note:** Low SSIM on T2 synthesis is expected — ADC and T2 are fundamentally different image contrasts and do not share pixel values even for the same anatomy. The original paper trains for 40,000 iterations; results improve significantly with more training.
 
 ---
 
@@ -295,7 +353,7 @@ Trained on PROSTATEx dataset — 9,500 iterations, batch size 32, Apple MPS devi
 ![Architecture diagram](assets/architecture.svg)
 
 **6 networks in total:**
-- `SharedLayers` — shared decoder layers between both generators
+- `SharedLayers` — shared decoder layers between both generators (key innovation)
 - `Encoder` — compresses real ADC to 128-dim latent vector
 - `GeneratorADC` — 128-dim noise/code → 64×64 ADC image
 - `GeneratorT2` — 64×64 ADC → 64×64 T2 image (U-Net with skip connections)
@@ -331,3 +389,4 @@ The original TF 1.x implementation is preserved in:
 - Paper: https://ieeexplore.ieee.org/document/8736809
 - Dataset: https://www.cancerimagingarchive.net/collection/prostatex/
 - NBIA Data Retriever: https://wiki.cancerimagingarchive.net/display/NBIA/Downloading+TCIA+Images
+- PyTorch Install: https://pytorch.org/get-started/locally/

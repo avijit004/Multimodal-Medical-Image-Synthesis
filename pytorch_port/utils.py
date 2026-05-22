@@ -98,10 +98,13 @@ def infinite_dataloader(dataloader):
 
 
 def get_device():
-    """Get the best available device (MPS for Apple Silicon, CUDA, or CPU)."""
-    if torch.backends.mps.is_available():
-        return torch.device('mps')
-    elif torch.cuda.is_available():
+    """
+    Get the best available device.
+    Priority: CUDA (Windows/Linux NVIDIA) > MPS (Apple Silicon) > CPU
+    Works on Windows, Mac, and Linux.
+    """
+    if torch.cuda.is_available():
         return torch.device('cuda')
-    else:
-        return torch.device('cpu')
+    if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        return torch.device('mps')
+    return torch.device('cpu')

@@ -30,10 +30,9 @@ class MedicalImageDataset(Dataset):
         self.image_size = image_size
         self.name_list = []
 
-        with open(name_list_path, 'r') as f:
+        with open(name_list_path, 'r', encoding='utf-8') as f:
             for line in f:
-                line = line.strip('\n').strip('\r')
-                name = line.split(' ')[0]  # Take first token (filename)
+                name = line.strip().split(' ')[0]  # strip handles \n, \r\n, \r
                 if name:
                     self.name_list.append(name)
 
@@ -78,10 +77,9 @@ class PairedMedicalImageDataset(Dataset):
         self.image_size = image_size
         self.name_list = []
 
-        with open(name_list_path, 'r') as f:
+        with open(name_list_path, 'r', encoding='utf-8') as f:
             for line in f:
-                line = line.strip('\n').strip('\r')
-                name = line.split(' ')[0]
+                name = line.strip().split(' ')[0]
                 if name:
                     self.name_list.append(name)
 
@@ -111,15 +109,23 @@ class PairedMedicalImageDataset(Dataset):
 
 def get_dataloader(data_dir, name_list_path, batch_size=32, image_size=(64, 64),
                    shuffle=True, num_workers=0):
-    """Create a DataLoader for a single modality."""
+    """
+    Create a DataLoader for a single modality.
+    num_workers=0 is required on Windows (safe on all platforms).
+    """
     dataset = MedicalImageDataset(data_dir, name_list_path, image_size)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                      num_workers=num_workers, drop_last=True)
+                      num_workers=num_workers, drop_last=True,
+                      persistent_workers=False)
 
 
 def get_paired_dataloader(adc_dir, t2_dir, name_list_path, batch_size=32,
                           image_size=(64, 64), shuffle=True, num_workers=0):
-    """Create a DataLoader for paired bi-modality images."""
+    """
+    Create a DataLoader for paired bi-modality images.
+    num_workers=0 is required on Windows (safe on all platforms).
+    """
     dataset = PairedMedicalImageDataset(adc_dir, t2_dir, name_list_path, image_size)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                      num_workers=num_workers, drop_last=True)
+                      num_workers=num_workers, drop_last=True,
+                      persistent_workers=False)

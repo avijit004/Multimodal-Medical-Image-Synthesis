@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import numpy as np
 import cv2
@@ -7,13 +8,15 @@ try:
     import pydicom
 except ImportError:
     print("ERROR: pydicom is not installed. Please run: pip install pydicom")
-    exit(1)
+    sys.exit(1)
 
 def main():
-    base_dir = "../PROSTATEx-v1-doiJNLP/prostatex"
-    out_dir = "../data/prostatex_processed"
-    adc_out = os.path.join(out_dir, "adc")
-    t2_out = os.path.join(out_dir, "t2")
+    # Use os.path for cross-platform compatibility (Windows + Mac + Linux)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.join(script_dir, '..', 'PROSTATEx-v1-doiJNLP', 'prostatex')
+    out_dir   = os.path.join(script_dir, '..', 'data')
+    adc_out   = os.path.join(out_dir, 'adc')
+    t2_out    = os.path.join(out_dir, 't2')
     
     os.makedirs(adc_out, exist_ok=True)
     os.makedirs(t2_out, exist_ok=True)
@@ -97,17 +100,19 @@ def main():
     print(f"\nSuccessfully extracted {len(paired_names)} paired images.")
     
     # Save lists
-    with open(os.path.join(out_dir, "paired_names.txt"), "w") as f:
+    with open(os.path.join(out_dir, "paired_names.txt"), "w", newline='\n') as f:
         for name in paired_names:
             f.write(name + "\n")
-            
-    with open(os.path.join(out_dir, "t2_names.txt"), "w") as f:
+
+    with open(os.path.join(out_dir, "t2_names.txt"), "w", newline='\n') as f:
         for name in paired_names:
             f.write(name + "\n")
-            
-    with open(os.path.join(out_dir, "adc_names.txt"), "w") as f:
+
+    with open(os.path.join(out_dir, "adc_names.txt"), "w", newline='\n') as f:
         for name in paired_names:
             f.write(name + "\n")
+
+    print(f"\nOutput saved to: {out_dir}")
 
 if __name__ == "__main__":
     main()

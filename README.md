@@ -292,24 +292,6 @@ Trained on PROSTATEx dataset — 9,500 iterations, batch size 32, Apple MPS devi
 
 ## Architecture Overview
 
-```
-Random noise z ~ N(0,I)
-        │
-        ▼
-  GeneratorADC ──────────────────► Synthetic ADC
-  (z → 64x64)            │
-        ↑          GeneratorT2 ──► Synthetic T2
-  SharedLayers    (ADC → 64x64)
-        ↓
-  GeneratorT2 also uses SharedLayers
-        (same weights = spatial alignment guaranteed)
-
-Real ADC ──► Encoder ──► z_encoded ──► GeneratorADC ──► Reconstructed ADC
-                                              │
-                                       GeneratorT2 ──► Synthesized T2
-                                              │
-                              L1 loss vs real paired images
-```
 
 **6 networks in total:**
 - `SharedLayers` — shared decoder layers between both generators

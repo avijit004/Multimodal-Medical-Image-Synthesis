@@ -1,6 +1,23 @@
-torch>=2.0
-torchvision
+# Core dependencies — install these first
 numpy
 opencv-python
 tensorboard
 Pillow
+scikit-image
+scipy
+pydicom
+
+# PyTorch — install separately based on your OS and GPU:
+#
+# Mac (Apple Silicon MPS):
+#   pip install torch torchvision
+#
+# Windows / Linux with NVIDIA GPU (CUDA 12.1):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#
+# Windows / Linux CPU only:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#
+# Always check latest install command at: https://pytorch.org/get-started/locally/
+torch>=2.0
+torchvision

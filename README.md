@@ -292,7 +292,8 @@ Trained on PROSTATEx dataset — 9,500 iterations, batch size 32, Apple MPS devi
 
 ## Architecture Overview
 
-![Architecture diagram](assets/architecture.png)
+![Architecture diagram](assets/architecture.svg)
+
 **6 networks in total:**
 - `SharedLayers` — shared decoder layers between both generators
 - `Encoder` — compresses real ADC to 128-dim latent vector

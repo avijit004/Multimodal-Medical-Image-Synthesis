@@ -165,7 +165,7 @@ def main():
     print(f"  → open: http://localhost:6006\n")
 
     # ── Load checkpoint ────────────────────────────────────────────────────────
-    ckpt    = torch.load(args.checkpoint, map_location=device)
+    ckpt    = torch.load(args.checkpoint, map_location=device, weights_only=False)
     ckpt_it = ckpt.get('iter', 0)
     shared  = SharedLayers().to(device)
     encoder = Encoder(args.z_dim).to(device)

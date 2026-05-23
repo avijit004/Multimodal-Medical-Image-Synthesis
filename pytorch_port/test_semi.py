@@ -33,7 +33,7 @@ def parse_args():
 
 def load_models(checkpoint_path, z_dim, device):
     """Load all model weights from a checkpoint."""
-    ckpt = torch.load(checkpoint_path, map_location=device)
+    ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     shared  = SharedLayers().to(device)
     encoder = Encoder(z_dim).to(device)

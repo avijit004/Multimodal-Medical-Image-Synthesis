@@ -7,6 +7,14 @@
 
 ---
 
+## Windows Terminal Note
+
+> **PowerShell** (default on Windows 10/11): use backtick `` ` `` for multi-line commands.
+> **Command Prompt** (cmd.exe): use `^` for multi-line commands.
+> **Simplest option**: put everything on one line — works in any terminal.
+
+---
+
 ## Platform Support
 
 | Platform | CPU | GPU |
@@ -170,7 +178,24 @@ python train_semi.py \
     --save_interval 500
 ```
 
-**Windows (Command Prompt):**
+**Windows PowerShell** (backtick `` ` `` for line continuation):
+```powershell
+cd pytorch_port
+python train_semi.py `
+    --adc_dir ../data/adc `
+    --t2_dir ../data/t2 `
+    --paired_list ../data/paired_names.txt `
+    --adc_list ../data/adc_names.txt `
+    --t2_list ../data/t2_names.txt `
+    --results_path ./results_semi_real `
+    --save_image_path ./generated_semi_real `
+    --iters 10000 `
+    --batch_size 32 `
+    --n_critic 3 `
+    --save_interval 500
+```
+
+**Windows Command Prompt** (`^` for line continuation):
 ```cmd
 cd pytorch_port
 python train_semi.py ^
@@ -230,10 +255,12 @@ Open browser: **http://localhost:6006**
 
 ### Step 7 — Run Inference (Test)
 
+> Replace the checkpoint path below with the actual path in your `results_semi_real/` folder.
+
 **Mac / Linux:**
 ```bash
 python test_semi.py \
-    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt \
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt \
     --mode both \
     --adc_dir ../data/adc \
     --adc_list ../data/adc_names.txt \
@@ -241,15 +268,31 @@ python test_semi.py \
     --output_dir ./test_output
 ```
 
-**Windows:**
+**Windows PowerShell** (backtick `` ` `` for line continuation):
+```powershell
+python test_semi.py `
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt `
+    --mode both `
+    --adc_dir ../data/adc `
+    --adc_list ../data/adc_names.txt `
+    --n_samples 50 `
+    --output_dir ./test_output
+```
+
+**Windows Command Prompt** (`^` for line continuation):
 ```cmd
 python test_semi.py ^
-    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt ^
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt ^
     --mode both ^
     --adc_dir ../data/adc ^
     --adc_list ../data/adc_names.txt ^
     --n_samples 50 ^
     --output_dir ./test_output
+```
+
+**Or use a single line (works in any terminal):**
+```
+python test_semi.py --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt --mode both --adc_dir ../data/adc --adc_list ../data/adc_names.txt --n_samples 50 --output_dir ./test_output
 ```
 
 **Inference modes:**
@@ -279,7 +322,7 @@ test_output/
 **Mac / Linux:**
 ```bash
 python evaluate.py \
-    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt \
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt \
     --adc_dir ../data/adc \
     --t2_dir ../data/t2 \
     --paired_list ../data/paired_names.txt \
@@ -290,10 +333,24 @@ python evaluate.py \
     --fid_samples 200
 ```
 
-**Windows:**
+**Windows PowerShell** (backtick `` ` `` for line continuation):
+```powershell
+python evaluate.py `
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt `
+    --adc_dir ../data/adc `
+    --t2_dir ../data/t2 `
+    --paired_list ../data/paired_names.txt `
+    --adc_list ../data/adc_names.txt `
+    --t2_list ../data/t2_names.txt `
+    --output_dir ./eval_output `
+    --vis_images 16 `
+    --fid_samples 200
+```
+
+**Windows Command Prompt** (`^` for line continuation):
 ```cmd
 python evaluate.py ^
-    --checkpoint ./results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9500.pt ^
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt ^
     --adc_dir ../data/adc ^
     --t2_dir ../data/t2 ^
     --paired_list ../data/paired_names.txt ^

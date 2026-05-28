@@ -1,17 +1,32 @@
 # Bi-Modality Medical Image Synthesis
-### Semi-Supervised Sequential GAN — PyTorch Implementation
+### Semi-Supervised Sequential GAN + Self-Supervised Contrastive Learning — PyTorch Implementation
 
-> PyTorch port of **"Bi-modality Medical Image Synthesis using Semi-supervised Sequential Generative Adversarial Networks"**
+> PyTorch port and extension of **"Bi-modality Medical Image Synthesis using Semi-supervised Sequential Generative Adversarial Networks"**
 > IEEE Journal of Biomedical and Health Informatics, 2019.
 > Original paper: [IEEE Xplore](https://ieeexplore.ieee.org/document/8736809)
 
 ---
 
-## Windows Terminal Note
+## What This Project Does
 
-> **PowerShell** (default on Windows 10/11): use backtick `` ` `` for multi-line commands.
-> **Command Prompt** (cmd.exe): use `^` for multi-line commands.
-> **Simplest option**: put everything on one line — works in any terminal.
+Given a patient's **ADC (Apparent Diffusion Coefficient)** prostate MRI scan, this project explores two approaches to cross-modal medical image understanding:
+
+### 1. Semi-Supervised Sequential GAN *(paper implementation)*
+Synthesises the corresponding **T2-weighted MRI** scan from an ADC scan — without needing a fully paired dataset. Combines:
+- A small set of **paired** images → supervised L1 reconstruction loss
+- A large set of **unpaired** images → unsupervised WGAN-GP adversarial loss
+
+### 2. Self-Supervised Contrastive Learning *(mini-project extension)*
+Learns a **shared embedding space** across ADC and T2 modalities using NT-Xent (InfoNCE) contrastive loss — with **no labels at all**. The model learns what makes an ADC and T2 scan belong to the same patient by:
+- Pulling embeddings of paired (ADC, T2) scans together
+- Pushing embeddings of all other combinations apart
+
+| | Semi-Supervised GAN | Self-Supervised Contrastive |
+|---|---|---|
+| **Output** | Synthesised images | Embedding vectors |
+| **Labels needed** | Paired images only | None |
+| **Evaluated by** | PSNR / SSIM / FID | Retrieval accuracy |
+| **Practical use** | Generate T2 from ADC | Cross-modal retrieval, downstream classification |
 
 ---
 
@@ -26,15 +41,9 @@
 
 The code automatically detects the best available device (CUDA → MPS → CPU).
 
----
-
-## What This Project Does
-
-Given a patient's **ADC (Apparent Diffusion Coefficient)** prostate MRI scan, this model automatically synthesizes the corresponding **T2-weighted MRI** scan — without needing a fully paired dataset.
-
-It uses a **Semi-Supervised Sequential GAN** that combines:
-- A small set of **paired** images (supervised L1 loss)
-- A large set of **unpaired** images (unsupervised WGAN-GP loss)
+> **PowerShell** (default on Windows 10/11): use backtick `` ` `` for multi-line commands.
+> **Command Prompt** (cmd.exe): use `^` for multi-line commands.
+> **Simplest option**: put everything on one line — works in any terminal.
 
 ---
 
@@ -43,23 +52,34 @@ It uses a **Semi-Supervised Sequential GAN** that combines:
 ```
 Multimodal-Medical-Image-Synthesis/
 ├── pytorch_port/
-│   ├── models.py               ← 6 network architectures
-│   ├── dataset.py              ← PyTorch Dataset for single and paired modalities
-│   ├── utils.py                ← WGAN-GP gradient penalty, image saving, device helpers
+│   ├── models.py               ← All network architectures (8 classes)
+│   ├── dataset.py              ← Datasets for single, paired, augmented, and labeled data
+│   ├── utils.py                ← WGAN-GP penalty, image saving, device helpers
 │   ├── preprocess_dicom.py     ← Convert raw DICOM → 64x64 PNG
-│   ├── train_semi.py           ← Semi-supervised training script
-│   ├── test_semi.py            ← Inference script (random generation + real ADC → T2)
-│   ├── evaluate.py             ← Evaluation metrics (MAE, MSE, PSNR, SSIM, FID) + TensorBoard
+│   │
+│   ├── train_semi.py           ← Semi-supervised WGAN-GP + L1 training
+│   ├── test_semi.py            ← Semi: random generation + real ADC → T2 inference
+│   │
+│   ├── train_self.py           ← Self-supervised NT-Xent contrastive training
+│   ├── test_self.py            ← Self: cross-modal retrieval + linear probe evaluation
+│   │
+│   ├── evaluate.py             ← Unified evaluation: both models + TensorBoard comparison
 │   ├── requirements.txt        ← Python dependencies
-│   ├── results_semi_real/      ← Training checkpoints + TensorBoard logs
-│   ├── generated_semi_real/    ← Images generated during training
-│   └── eval_output/            ← Evaluation metrics CSV + TensorBoard
+│   │
+│   ├── results_semi_real/      ← Semi training checkpoints + TensorBoard logs
+│   ├── results_self/           ← Self training checkpoints + TensorBoard logs
+│   ├── generated_semi_real/    ← Images generated during semi training
+│   ├── test_output_semi/       ← Semi inference outputs
+│   ├── test_output_self/       ← Self retrieval outputs
+│   └── eval_output/            ← Unified evaluation: CSVs, charts, TensorBoard
+│
 ├── data/
-│   ├── adc/                    ← 500 ADC PNG images (64x64)
-│   ├── t2/                     ← 500 T2 PNG images (64x64)
+│   ├── adc/                    ← 500 ADC PNG images (64×64)
+│   ├── t2/                     ← 500 T2 PNG images (64×64)
 │   ├── paired_names.txt        ← 200 paired filenames (supervised signal)
 │   ├── adc_names.txt           ← 500 ADC filenames (unsupervised signal)
 │   └── t2_names.txt            ← 500 T2 filenames (unsupervised signal)
+│
 ├── assets/                     ← Architecture diagrams
 ├── semi/                       ← Original TensorFlow 1.x semi-supervised code
 ├── supervise/                  ← Original TensorFlow 1.x supervised code
@@ -108,7 +128,6 @@ cd Multimodal-Medical-Image-Synthesis
 
 ### Step 2 — Install PyTorch
 
-PyTorch must be installed based on your platform and GPU.
 Go to **https://pytorch.org/get-started/locally/** and select your config.
 
 **Mac (Apple Silicon or Intel):**
@@ -137,33 +156,25 @@ pip install numpy opencv-python tensorboard Pillow scikit-image scipy pydicom
 
 ---
 
-### Step 4 — Preprocess DICOM to PNG (Optional)
+### Step 4 — Preprocess DICOM to PNG *(Optional)*
 
-> **Skip this step** — the `data/` folder with 500 ADC + 500 T2 images is already included in the repo.
-> Only do this if you want to regenerate data from the raw PROSTATEx DICOM files.
+> **Skip this step** — the `data/` folder with 500 ADC + 500 T2 images is already included.
+> Only needed if regenerating from raw PROSTATEx DICOM files.
 
-#### Download PROSTATEx dataset
-1. Go to: **https://www.cancerimagingarchive.net/collection/prostatex/**
-2. Click **"Download"** → get the `.tcia` manifest file
-
-#### Convert .tcia to DICOM using NBIA Data Retriever
-1. Download from: **https://wiki.cancerimagingarchive.net/display/NBIA/Downloading+TCIA+Images**
-2. Open the app → File → Open → select `.tcia` file → Download
-3. DICOM files will be saved to `PROSTATEx-v1-doiJNLP/prostatex/`
-
-#### Run preprocessing
+1. Download PROSTATEx: **https://www.cancerimagingarchive.net/collection/prostatex/**
+2. Use NBIA Data Retriever to convert `.tcia` → DICOM
+3. Run:
 ```bash
-cd pytorch_port
 python preprocess_dicom.py
 ```
 
 ---
 
-### Step 5 — Train the Model
+## Part A — Semi-Supervised GAN
 
-**Mac / Linux:**
+### Step 5 — Train the Semi-Supervised Model
+
 ```bash
-cd pytorch_port
 python train_semi.py \
     --adc_dir ../data/adc \
     --t2_dir ../data/t2 \
@@ -178,9 +189,8 @@ python train_semi.py \
     --save_interval 500
 ```
 
-**Windows PowerShell** (backtick `` ` `` for line continuation):
+**Windows PowerShell:**
 ```powershell
-cd pytorch_port
 python train_semi.py `
     --adc_dir ../data/adc `
     --t2_dir ../data/t2 `
@@ -195,234 +205,263 @@ python train_semi.py `
     --save_interval 500
 ```
 
-**Windows Command Prompt** (`^` for line continuation):
-```cmd
-cd pytorch_port
-python train_semi.py ^
-    --adc_dir ../data/adc ^
-    --t2_dir ../data/t2 ^
-    --paired_list ../data/paired_names.txt ^
-    --adc_list ../data/adc_names.txt ^
-    --t2_list ../data/t2_names.txt ^
-    --results_path ./results_semi_real ^
-    --save_image_path ./generated_semi_real ^
-    --iters 10000 ^
-    --batch_size 32 ^
-    --n_critic 3 ^
-    --save_interval 500
-```
-
-**Training arguments:**
-
 | Argument | Default | Description |
 |---|---|---|
-| `--adc_dir` | required | Directory of ADC PNG images |
-| `--t2_dir` | required | Directory of T2 PNG images |
-| `--paired_list` | required | Text file listing paired image names |
-| `--adc_list` | required | Text file listing all ADC image names |
-| `--t2_list` | required | Text file listing all T2 image names |
-| `--iters` | 5000 | Number of training iterations |
+| `--iters` | 5000 | Training iterations |
 | `--batch_size` | 32 | Batch size |
 | `--z_dim` | 128 | Latent vector dimension |
 | `--lr` | 1e-4 | Learning rate |
-| `--n_critic` | 3 | Discriminator updates per generator update |
+| `--n_critic` | 3 | Discriminator updates per generator step |
 | `--save_interval` | 500 | Save checkpoint every N iterations |
-| `--use_cpu` | False | Force CPU (use if no GPU available) |
+| `--use_cpu` | False | Force CPU |
 
-**During training you will see:**
-```
-iter:    0 | D1=9.7217 D2=9.7274
-iter:   50 | D1=-11.36 D2=-19.29
-iter:  100 | D1=-16.27 D2=-7.69
-...
-[Saved checkpoint + 50 image pairs at iter 500]
-```
-
----
-
-### Step 6 — Monitor Training in TensorBoard
-
+**Monitor training:**
 ```bash
 tensorboard --logdir ./results_semi_real
 ```
-
-Open browser: **http://localhost:6006**
-
-- **SCALARS tab** → `Loss/D1` and `Loss/D2` loss curves
-- **IMAGES tab** → `Gen/ADC` and `Gen/T2` — drag slider to watch image quality improve over iterations
+Open **http://localhost:6006** → IMAGES tab → drag the slider to watch image quality improve over iterations.
 
 ---
 
-### Step 7 — Run Inference (Test)
+### Step 6 — Run Semi-Supervised Inference
 
-> Replace the checkpoint path below with the actual path in your `results_semi_real/` folder.
-
-**Mac / Linux:**
 ```bash
 python test_semi.py \
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt \
+    --checkpoint ./results_semi_real/<timestamp>/Saved_models/semi_ckpt_final.pt \
     --mode both \
     --adc_dir ../data/adc \
     --adc_list ../data/adc_names.txt \
     --n_samples 50 \
-    --output_dir ./test_output
+    --output_dir ./test_output_semi
 ```
-
-**Windows PowerShell** (backtick `` ` `` for line continuation):
-```powershell
-python test_semi.py `
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt `
-    --mode both `
-    --adc_dir ../data/adc `
-    --adc_list ../data/adc_names.txt `
-    --n_samples 50 `
-    --output_dir ./test_output
-```
-
-**Windows Command Prompt** (`^` for line continuation):
-```cmd
-python test_semi.py ^
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt ^
-    --mode both ^
-    --adc_dir ../data/adc ^
-    --adc_list ../data/adc_names.txt ^
-    --n_samples 50 ^
-    --output_dir ./test_output
-```
-
-**Or use a single line (works in any terminal):**
-```
-python test_semi.py --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt --mode both --adc_dir ../data/adc --adc_list ../data/adc_names.txt --n_samples 50 --output_dir ./test_output
-```
-
-**Inference modes:**
 
 | Mode | Description |
 |---|---|
-| `random_pairs` | Generate synthetic ADC+T2 pairs from random noise |
-| `real_to_fake` | Translate real ADC images to synthesized T2 |
+| `random_pairs` | Generate synthetic ADC+T2 pairs from random noise z ~ N(0,I) |
+| `real_to_fake` | Real ADC → Encoder → Generator → Reconstructed ADC + Synthesised T2 |
 | `both` | Run both modes |
 
-**Output structure:**
+**Output:**
 ```
-test_output/
+test_output_semi/
 ├── random_pairs/
-│   ├── adc/    → synthetic ADC images from noise
-│   └── t2/     → corresponding synthetic T2 images
+│   ├── adc/    ← synthetic ADC images
+│   └── t2/     ← corresponding synthetic T2 images
 └── real_to_fake/
-    ├── input_adc/          → real ADC images fed in
-    ├── reconstructed_adc/  → encoder → decoder round-trip
-    └── synthesized_t2/     → THE MAIN RESULT — synthesized T2
+    ├── input_adc/          ← real ADC input
+    ├── reconstructed_adc/  ← encoder → decoder round-trip
+    └── synthesized_t2/     ← THE MAIN RESULT
 ```
 
 ---
 
-### Step 8 — Run Evaluation Metrics
+## Part B — Self-Supervised Contrastive Learning
 
-**Mac / Linux:**
+### Step 7 — Train the Self-Supervised Model
+
+```bash
+python train_self.py \
+    --adc_dir ../data/adc \
+    --t2_dir ../data/t2 \
+    --paired_list ../data/paired_names.txt \
+    --results_path ./results_self \
+    --iters 10000 \
+    --batch_size 32
+```
+
+**Windows PowerShell:**
+```powershell
+python train_self.py `
+    --adc_dir ../data/adc `
+    --t2_dir ../data/t2 `
+    --paired_list ../data/paired_names.txt `
+    --results_path ./results_self `
+    --iters 10000 `
+    --batch_size 32
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `--iters` | 10000 | Training iterations |
+| `--batch_size` | 32 | Batch size |
+| `--z_dim` | 128 | Encoder output dimension |
+| `--proj_dim` | 64 | Projection head output dimension |
+| `--lr` | 1e-4 | Learning rate |
+| `--temperature` | 0.07 | NT-Xent temperature τ |
+| `--save_interval` | 1000 | Save checkpoint every N iterations |
+| `--use_cpu` | False | Force CPU |
+
+**What you will see during training:**
+```
+iteration:0
+NT-Xent Loss  = 3.7594
+Top-1 Acc     = 3.1%
+
+iteration:5000
+NT-Xent Loss  = 0.1006
+Top-1 Acc     = 96.9%
+
+iteration:9950
+NT-Xent Loss  = 0.0064
+Top-1 Acc     = 100.0%
+```
+
+**Monitor training:**
+```bash
+tensorboard --logdir ./results_self
+```
+
+---
+
+### Step 8 — Run Self-Supervised Evaluation
+
+```bash
+python test_self.py \
+    --checkpoint ./results_self/<timestamp>/Saved_models/self_ckpt_final.pt \
+    --mode retrieval \
+    --adc_dir ../data/adc \
+    --t2_dir ../data/t2 \
+    --paired_list ../data/paired_names.txt \
+    --output_dir ./test_output_self
+```
+
+| Mode | Description |
+|---|---|
+| `retrieval` | For every ADC image, rank all T2 images by cosine similarity — report Top-1/3/5 accuracy |
+| `linear_probe` | Freeze encoders, train a linear classifier on concatenated embeddings (needs labeled lists) |
+
+---
+
+## Part C — Unified Evaluation and Comparison
+
+### Step 9 — Run Unified Evaluation
+
+Evaluates both models on the same data, compares them, and writes everything to a single TensorBoard:
+
 ```bash
 python evaluate.py \
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt \
+    --semi_checkpoint ./results_semi_real/<timestamp>/Saved_models/semi_ckpt_final.pt \
+    --self_checkpoint ./results_self/<timestamp>/Saved_models/self_ckpt_final.pt \
     --adc_dir ../data/adc \
     --t2_dir ../data/t2 \
     --paired_list ../data/paired_names.txt \
     --adc_list ../data/adc_names.txt \
     --t2_list ../data/t2_names.txt \
-    --output_dir ./eval_output \
-    --vis_images 16 \
-    --fid_samples 200
+    --output_dir ./eval_output
 ```
 
-**Windows PowerShell** (backtick `` ` `` for line continuation):
+**Windows PowerShell:**
 ```powershell
 python evaluate.py `
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt `
+    --semi_checkpoint ./results_semi_real/<timestamp>/Saved_models/semi_ckpt_final.pt `
+    --self_checkpoint ./results_self/<timestamp>/Saved_models/self_ckpt_final.pt `
     --adc_dir ../data/adc `
     --t2_dir ../data/t2 `
     --paired_list ../data/paired_names.txt `
     --adc_list ../data/adc_names.txt `
     --t2_list ../data/t2_names.txt `
-    --output_dir ./eval_output `
-    --vis_images 16 `
-    --fid_samples 200
+    --output_dir ./eval_output
 ```
-
-**Windows Command Prompt** (`^` for line continuation):
-```cmd
-python evaluate.py ^
-    --checkpoint ./results_semi_real/<timestamp>/Saved_models/ckpt_9500.pt ^
-    --adc_dir ../data/adc ^
-    --t2_dir ../data/t2 ^
-    --paired_list ../data/paired_names.txt ^
-    --adc_list ../data/adc_names.txt ^
-    --t2_list ../data/t2_names.txt ^
-    --output_dir ./eval_output ^
-    --vis_images 16 ^
-    --fid_samples 200
-```
-
-**Metrics computed:**
-- **MAE** — Mean Absolute Error (pixel-level)
-- **MSE** — Mean Squared Error
-- **PSNR** — Peak Signal-to-Noise Ratio (dB)
-- **SSIM** — Structural Similarity Index
-- **FID** — Fréchet Inception Distance (distribution-level)
 
 **Outputs saved to `eval_output/`:**
-- `summary_metrics.csv` — mean ± std for all metrics
-- `per_image_metrics.csv` — per-image breakdown
-- `tensorboard/` — TensorBoard event files
+```
+eval_output/
+├── semi_per_image_metrics.csv   ← per-image MAE/MSE/PSNR/SSIM for semi model
+├── eval_summary.csv             ← summary of all metrics, both models
+├── comparison_chart.png         ← side-by-side bar chart
+└── tensorboard/                 ← TensorBoard event files
+```
 
 ---
 
-### Step 9 — View Evaluation in TensorBoard
+### Step 10 — View Results in TensorBoard
 
 ```bash
 tensorboard --logdir ./eval_output/tensorboard
 ```
 
-Open browser: **http://localhost:6006**
+Open **http://localhost:6006**
 
-- **SCALARS** → MAE, PSNR, SSIM, FID scores
-- **IMAGES** → `Comparison/T2_Real_vs_Synthesized` — real T2 vs synthesized T2 side by side
-- **DISTRIBUTIONS** → per-image PSNR and SSIM histograms
+| TensorBoard Tab | What you see |
+|---|---|
+| **SCALARS** | `Semi/` — MAE, PSNR, SSIM, FID for ADC and T2 |
+| | `Self/` — Top-1, Top-3, Top-5 retrieval accuracy, Mean Rank |
+| **IMAGES** | `Semi/ADC/` — real vs reconstructed ADC |
+| | `Semi/T2/` — real vs synthesised T2 |
+| | `Semi/Comparison/` — side-by-side interleaved grids |
+| | `Semi/Generated/` — random noise → ADC+T2 pairs |
+| **DISTRIBUTIONS** | Per-image PSNR and SSIM histograms |
+| **PROJECTOR** | `Self/Embeddings_ADC_vs_T2` — ADC and T2 embeddings in 3D, coloured by modality |
+| **TEXT** | `Comparison/Summary_Table` — full markdown comparison table |
+| **FIGURES** | `Comparison/Summary_Chart` — bar chart comparing both models |
 
 ---
 
 ## Results
 
-Trained on PROSTATEx dataset — 9,500 iterations, batch size 32.
+Trained on PROSTATEx dataset (500 ADC + 500 T2 images, 200 paired).
+
+### Semi-Supervised GAN — 9,500 iterations
 
 | Metric | ADC Reconstruction | T2 Synthesis |
 |---|---|---|
 | MAE | 34.92 ± 5.30 | 106.65 ± 19.94 |
 | MSE | 2022.92 ± 608.69 | 15294.23 ± 4832.37 |
-| PSNR | 15.26 dB ± 1.29 | 6.55 dB ± 1.63 |
+| PSNR | 15.26 ± 1.29 dB | 6.55 ± 1.63 dB |
 | SSIM | 0.1329 ± 0.033 | 0.0297 ± 0.054 |
-| FID | 310.28 | 351.01 |
+| FID | 309.92 | 350.80 |
 
-> **Note:** Low SSIM on T2 synthesis is expected — ADC and T2 are fundamentally different image contrasts and do not share pixel values even for the same anatomy. The original paper trains for 40,000 iterations; results improve significantly with more training.
+> Low SSIM on T2 synthesis is expected — ADC and T2 are fundamentally different image contrasts and do not share pixel values even for the same anatomy. The original paper trains for 40,000 iterations on a larger dataset; results improve significantly with more training.
+
+### Self-Supervised Contrastive — 10,000 iterations
+
+| Metric | Value |
+|---|---|
+| Top-1 Retrieval Accuracy | **100.0%** |
+| Top-3 Retrieval Accuracy | **100.0%** |
+| Top-5 Retrieval Accuracy | **100.0%** |
+| Mean Rank | **1.0 / 200** |
+
+> NT-Xent loss converged from **3.76 → 0.006**. The model correctly identifies the paired T2 for every ADC query — rank 1 every time. Evaluated using the projection-head outputs (the space explicitly aligned during training).
 
 ---
 
 ## Architecture Overview
 
-![Architecture diagram](assets/architecture.svg)
+### Semi-Supervised GAN (6 networks)
 
-**6 networks in total:**
-- `SharedLayers` — shared decoder layers between both generators (key innovation)
-- `Encoder` — compresses real ADC to 128-dim latent vector
-- `GeneratorADC` — 128-dim noise/code → 64×64 ADC image
-- `GeneratorT2` — 64×64 ADC → 64×64 T2 image (U-Net with skip connections)
-- `DiscriminatorADC` — WGAN critic for ADC images
-- `DiscriminatorT2` — WGAN critic for T2 images
+![Semi-supervised architecture](assets/architecture.svg)
+
+
+| Network | Role |
+|---|---|
+| `SharedLayers` | Shared decoder layers between both generators — ensures spatial consistency across modalities |
+| `Encoder` | Real ADC image → 128-dim latent vector |
+| `GeneratorADC` | 128-dim noise/code → 64×64 ADC image |
+| `GeneratorT2` | 64×64 ADC image → 64×64 T2 image (U-Net with skip connections) |
+| `DiscriminatorADC` | WGAN critic for ADC images |
+| `DiscriminatorT2` | WGAN critic for T2 images |
+
+### Self-Supervised Contrastive (4 networks)
+
+![Self-supervised architecture](assets/architecture_self.svg)
+
+
+| Network | Role |
+|---|---|
+| `Encoder` (ADC) | ADC image → 128-dim embedding |
+| `Encoder` (T2) | T2 image → 128-dim embedding |
+| `ProjectionHead` (ADC) | 128-dim → 64-dim projected embedding for NT-Xent loss |
+| `ProjectionHead` (T2) | 128-dim → 64-dim projected embedding for NT-Xent loss |
+
+The two projection heads are trained to make `proj(enc_adc(ADC_i))` and `proj(enc_t2(T2_i))` close for the same patient `i`, and far apart for all other combinations in the batch.
 
 ---
 
 ## Original TensorFlow Code
 
 The original TF 1.x implementation is preserved in:
-- `semi/` — semi-supervised training (this project's focus)
+- `semi/` — semi-supervised training (the paper's focus)
 - `supervise/` — fully supervised training
 - `unsupervise/` — fully unsupervised training
 

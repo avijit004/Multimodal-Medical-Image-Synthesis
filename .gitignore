@@ -6,6 +6,17 @@ pytorch_port/comparison_output/
 generate_pdf.py
 generate_report.py
 semi_supervised_explanation.html
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+
+# TensorBoard event files (binary, not useful in repo)
+pytorch_port/eval_output/tensorboard/
+pytorch_port/results_semi_real/**/Tensorboard/
+pytorch_port/results_self/**/Tensorboard/
+
+# Intermediate semi-supervised checkpoints (old naming)
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_500.pt
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_1000.pt
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_1500.pt
@@ -24,3 +35,34 @@ pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_7500.pt
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_8000.pt
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_8500.pt
 pytorch_port/results_semi_real/2026-05-17__01-56-42/Saved_models/ckpt_9000.pt
+
+# Intermediate semi-supervised checkpoints (new naming — keep only final)
+pytorch_port/results_semi_real/**/semi_ckpt_500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_1000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_1500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_2000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_2500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_3000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_3500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_4000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_4500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_5000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_5500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_6000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_6500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_7000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_7500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_8000.pt
+pytorch_port/results_semi_real/**/semi_ckpt_8500.pt
+pytorch_port/results_semi_real/**/semi_ckpt_9000.pt
+
+# Intermediate self-supervised checkpoints (keep only final)
+pytorch_port/results_self/**/self_ckpt_1000.pt
+pytorch_port/results_self/**/self_ckpt_2000.pt
+pytorch_port/results_self/**/self_ckpt_3000.pt
+pytorch_port/results_self/**/self_ckpt_4000.pt
+pytorch_port/results_self/**/self_ckpt_5000.pt
+pytorch_port/results_self/**/self_ckpt_6000.pt
+pytorch_port/results_self/**/self_ckpt_7000.pt
+pytorch_port/results_self/**/self_ckpt_8000.pt
+pytorch_port/results_self/**/self_ckpt_9000.pt

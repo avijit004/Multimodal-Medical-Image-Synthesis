@@ -1,0 +1,107 @@
+<svg width="100%" viewBox="0 0 680 710" role="img" xmlns="http://www.w3.org/2000/svg"><title style="fill:rgb(0,0,0);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif">Self-supervised cross-modal contrastive learning architecture</title><desc style="fill:rgb(0,0,0);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif">Two parallel encoding paths: a paired ADC and T2 scan from the same patient are independently augmented, passed through separate encoders and projection heads to produce L2-normalised embeddings h_adc and h_t2. The NT-Xent loss pulls the positive pair together and pushes all other cross-modal combinations in the batch apart. No labels are used at any point.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<!-- ── page title ─────────────────────────────────────────── -->
+<text x="340" y="26" text-anchor="middle" style="fill:rgb(250,249,245);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Self-Supervised Cross-Modal Contrastive Learning</text>
+
+<!-- ── paired input (center) ─────────────────────────────── -->
+<g>
+<rect x="255" y="44" width="170" height="56" rx="8" stroke-width="0.5" style="fill:rgb(12,68,124);stroke:rgb(133,183,235)"/>
+<text x="340" y="66" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181,212,244);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Paired scan (ADC_i, T2_i)</text>
+<text x="340" y="84" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133,183,235);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">same patient  i</text>
+</g>
+
+<!-- ── fork paths: paired input → two branches ───────────── -->
+<path d="M295,100 L295,120 L155,120 L155,148" fill="none" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+<path d="M385,100 L385,120 L525,120 L525,148" fill="none" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+
+<!-- ── vertical centre divider ───────────────────────────── -->
+<line x1="340" y1="116" x2="340" y2="535" style="stroke:rgb(156,154,146);stroke-width:0.5px;stroke-dasharray:4px,4px"/>
+
+<!-- ── branch labels ─────────────────────────────────────── -->
+<text x="155" y="136" text-anchor="middle" style="fill:rgb(250,249,245);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">ADC branch</text>
+<text x="525" y="136" text-anchor="middle" style="fill:rgb(250,249,245);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">T2 branch</text>
+
+<!-- ── augmentation boxes ────────────────────────────────── -->
+<g>
+<rect x="75" y="148" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(68,68,65);stroke:rgb(180,178,169)"/>
+<text x="155" y="170" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211,209,199);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Augmentation</text>
+<text x="155" y="188" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180,178,169);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">flip · rotate · noise</text>
+</g>
+<g>
+<rect x="445" y="148" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(68,68,65);stroke:rgb(180,178,169)"/>
+<text x="525" y="170" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211,209,199);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Augmentation</text>
+<text x="525" y="188" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180,178,169);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">flip · rotate · noise</text>
+</g>
+<text x="340" y="178" text-anchor="middle" style="fill:rgb(156,154,146);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:11px;font-style:italic">independent</text>
+
+<!-- ── arrows: augmentation → encoder ───────────────────── -->
+<line x1="155" y1="204" x2="155" y2="254" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+<line x1="525" y1="204" x2="525" y2="254" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+
+<!-- ── encoder boxes ─────────────────────────────────────── -->
+<g>
+<rect x="75" y="254" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(60,52,137);stroke:rgb(175,169,236)"/>
+<text x="155" y="276" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206,203,246);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Encoder_ADC</text>
+<text x="155" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175,169,236);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">64×64 → 128-dim  z</text>
+</g>
+<g>
+<rect x="445" y="254" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(60,52,137);stroke:rgb(175,169,236)"/>
+<text x="525" y="276" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206,203,246);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">Encoder_T2</text>
+<text x="525" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175,169,236);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">64×64 → 128-dim  z</text>
+</g>
+
+<!-- ── arrows: encoder → projection head ─────────────────── -->
+<line x1="155" y1="310" x2="155" y2="362" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+<line x1="525" y1="310" x2="525" y2="362" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+
+<!-- ── projection head boxes ─────────────────────────────── -->
+<g>
+<rect x="75" y="362" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(8,80,65);stroke:rgb(93,202,165)"/>
+<text x="155" y="384" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159,225,203);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">ProjectionHead_ADC</text>
+<text x="155" y="402" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93,202,165);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">128 → 64-dim  MLP</text>
+</g>
+<g>
+<rect x="445" y="362" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(8,80,65);stroke:rgb(93,202,165)"/>
+<text x="525" y="384" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159,225,203);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">ProjectionHead_T2</text>
+<text x="525" y="402" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93,202,165);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">128 → 64-dim  MLP</text>
+</g>
+
+<!-- ── arrows: projection head → embedding ───────────────── -->
+<line x1="155" y1="418" x2="155" y2="468" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+<line x1="525" y1="418" x2="525" y2="468" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+
+<!-- ── L2-normalised embedding output boxes ──────────────── -->
+<g>
+<rect x="75" y="468" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(99,56,6);stroke:rgb(239,159,39)"/>
+<text x="155" y="490" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250,199,117);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">h_adc</text>
+<text x="155" y="508" text-anchor="middle" dominant-baseline="central" style="fill:rgb(239,159,39);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">L2-normalised · 64-dim</text>
+</g>
+<g>
+<rect x="445" y="468" width="160" height="56" rx="8" stroke-width="0.5" style="fill:rgb(99,56,6);stroke:rgb(239,159,39)"/>
+<text x="525" y="490" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250,199,117);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">h_t2</text>
+<text x="525" y="508" text-anchor="middle" dominant-baseline="central" style="fill:rgb(239,159,39);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">L2-normalised · 64-dim</text>
+</g>
+
+<!-- ── positive pair annotation between the two embeddings ── -->
+<line x1="235" y1="496" x2="445" y2="496" style="stroke:rgb(93,202,165);stroke-width:1px;stroke-dasharray:5px,3px"/>
+<text x="340" y="486" text-anchor="middle" style="fill:rgb(93,202,165);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:11px">positive pair ✓</text>
+
+<!-- ── convergence paths: embeddings → NT-Xent ───────────── -->
+<path d="M155,524 L155,556 L285,556 L285,574" fill="none" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+<path d="M525,524 L525,556 L395,556 L395,574" fill="none" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px"/>
+
+<!-- ── NT-Xent loss box ───────────────────────────────────── -->
+<g>
+<rect x="195" y="574" width="290" height="56" rx="8" stroke-width="0.5" style="fill:rgb(121,31,31);stroke:rgb(240,149,149)"/>
+<text x="340" y="596" text-anchor="middle" dominant-baseline="central" style="fill:rgb(247,193,193);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:14px;font-weight:500">NT-Xent Loss</text>
+<text x="340" y="614" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240,149,149);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">temperature  τ = 0.07</text>
+</g>
+
+<!-- ── bottom annotations ────────────────────────────────── -->
+<text x="340" y="651" text-anchor="middle" style="fill:rgb(194,192,182);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:12px">Positive: sim(h_adc_i, h_t2_i) ↑   ·   Negatives: all other N²−N cross-modal pairs in the batch ↓</text>
+<text x="340" y="671" text-anchor="middle" style="fill:rgb(156,154,146);stroke:none;font-family:&quot;Anthropic Sans&quot;,-apple-system,&quot;system-ui&quot;,&quot;Segoe UI&quot;,sans-serif;font-size:11px">No labels used — alignment learned purely from paired patient structure</text>
+
+</svg>

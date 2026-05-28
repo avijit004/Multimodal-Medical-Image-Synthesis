@@ -237,6 +237,24 @@ class DiscriminatorT2(nn.Module):
         return x
 
 
+class ProjectionHead(nn.Module):
+    """
+    2-layer MLP projection head for self-supervised contrastive learning.
+    Maps encoder output (z_dim) -> hidden_dim -> proj_dim.
+    Used only during pretraining; discarded for downstream tasks.
+    """
+    def __init__(self, z_dim=128, hidden_dim=256, proj_dim=64):
+        super(ProjectionHead, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(z_dim, hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, proj_dim),
+        )
+
+    def forward(self, z):
+        return self.net(z)
+
+
 class DiscriminatorZ(nn.Module):
     """
     Discriminator for latent z space (used in supervised training only).

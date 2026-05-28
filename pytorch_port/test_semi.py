@@ -12,7 +12,7 @@ from utils import get_device
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('--checkpoint', required=True,
-                   help='Path to .pt checkpoint file (e.g. ckpt_9500.pt)')
+                   help='Path to .pt checkpoint file (e.g. semi_ckpt_final.pt)')
     p.add_argument('--mode', default='both',
                    choices=['random_pairs', 'real_to_fake', 'both'],
                    help='Inference mode')

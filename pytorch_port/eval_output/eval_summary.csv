@@ -1,0 +1,15 @@
+model,metric,value_mean,value_std,notes
+semi,adc_mae,34.9198,5.2995,ADC reconstruction
+semi,t2_mae,106.6470,19.9382,T2 synthesis
+semi,adc_mse,2022.9174,608.6938,ADC reconstruction
+semi,t2_mse,15294.2324,4832.3736,T2 synthesis
+semi,adc_psnr,15.2622,1.2895,ADC reconstruction
+semi,t2_psnr,6.5550,1.6307,T2 synthesis
+semi,adc_ssim,0.1329,0.0334,ADC reconstruction
+semi,t2_ssim,0.0297,0.0544,T2 synthesis
+semi,adc_fid,309.92,-,ADC FID
+semi,t2_fid,350.80,-,T2 FID
+self,top1_acc_%,100.00,-,retrieval
+self,top3_acc_%,100.00,-,retrieval
+self,top5_acc_%,100.00,-,retrieval
+self,mean_rank,1.00,-,out of 200

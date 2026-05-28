@@ -111,7 +111,7 @@ def main():
         if i > 0 and i % args.save_interval == 0:
             torch.save({'iter': i, 'shared': shared.state_dict(), 'encoder': encoder.state_dict(),
                         'gen_adc': gen_adc.state_dict(), 'gen_t2': gen_t2.state_dict()},
-                       os.path.join(model_path, f'ckpt_{i}.pt'))
+                       os.path.join(model_path, f'semi_ckpt_{i}.pt'))
             with torch.no_grad():
                 gz = torch.randn(50, args.z_dim, device=device)
                 ga = gen_adc(gz).cpu().numpy(); gt = gen_t2(gen_adc(gz)).cpu().numpy()

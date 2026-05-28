@@ -1,0 +1,6 @@
+********* self-supervised retrieval ************
+N samples  : 200
+Top-1 Acc  : 0.00%
+Top-3 Acc  : 0.50%
+Top-5 Acc  : 0.50%
+Mean Rank  : 108.00 / 200

@@ -6,6 +6,7 @@ Pillow
 scikit-image
 scipy
 pydicom
+matplotlib
 
 # PyTorch — install separately based on your OS and GPU:
 #
